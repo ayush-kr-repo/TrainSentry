@@ -40,9 +40,6 @@ TrainSentry/
   .github/workflows/ci.yml
   requirements.txt
   README.md
-  .github/workflows/ci.yml
-  requirements.txt
-  README.md
 ```
 
 ## Quick Start
