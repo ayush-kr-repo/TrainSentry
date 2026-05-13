@@ -1,38 +1,34 @@
-# ML Debug Agent
+# TrainSentry
 
-AI-assisted training log analyzer for machine learning experiments. It parses
-PyTorch-style CSV logs, detects common training issues, and generates debugging
-reports that help engineers iterate faster on model training loops.
+AI-assisted training log analyzer for machine learning experiments. TrainSentry parses PyTorch-style CSV logs, detects common training issues, and generates debugging reports that help engineers iterate faster on model training loops.
 
-## Why this project exists
+## Overview
 
-Modern ML teams run many experiments, but the first debugging pass is often
-manual: compare curves, inspect train/validation gaps, find unstable epochs,
-and summarize what to try next. ML Debug Agent automates that first pass with a
-rules-first analysis engine and a lightweight dashboard.
+Modern ML teams run many experiments, but the first debugging pass is often manual: comparing curves, inspecting train/validation gaps, finding unstable epochs, and deciding what to try next.
+
+TrainSentry automates that first pass with a rules-first analysis engine, command-line reports, and a lightweight Streamlit dashboard.
 
 ## Features
 
-- Parse experiment logs from CSV files.
-- Detect overfitting, loss spikes, validation stagnation, metric drift, and
-  suspiciously high validation accuracy.
-- Generate plain-English debugging reports with severity labels and suggested
-  next actions.
-- Compare multiple experiment runs from the command line.
-- Visualize training and validation curves in a Streamlit dashboard.
-- Includes unit tests and GitHub Actions CI.
+- Parses experiment logs from CSV files
+- Detects overfitting, validation loss spikes, validation stagnation, metric drift, and suspiciously high validation accuracy
+- Generates plain-English debugging reports with severity labels, evidence, and suggested next actions
+- Compares multiple experiment runs from the command line
+- Visualizes training and validation curves in a Streamlit dashboard
+- Includes unit tests with `pytest`
+- Includes GitHub Actions CI for automated test runs
 
-## Project structure
+## Project Structure
 
 ```text
-ml-debug-agent/
+TrainSentry/
   ml_debug_agent/
     analyzer.py      # Training anomaly detection logic
     cli.py           # Command-line interface
     dashboard.py     # Streamlit dashboard
     parser.py        # CSV loading and validation
-    reporter.py      # Markdown/plain-text report generation
-    schemas.py       # Dataclasses shared across the project
+    reporter.py      # Markdown report generation
+    schemas.py       # Shared dataclasses
   data/
     healthy_run.csv
     overfit_run.csv
@@ -43,9 +39,13 @@ ml-debug-agent/
     test_reporter.py
   .github/workflows/ci.yml
   requirements.txt
+  README.md
+  .github/workflows/ci.yml
+  requirements.txt
+  README.md
 ```
 
-## Quick start
+## Quick Start
 
 Install dependencies:
 
@@ -53,13 +53,19 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Analyze one run:
+Run tests:
+
+```bash
+pytest -q
+```
+
+Analyze one training run:
 
 ```bash
 python -m ml_debug_agent.cli analyze data/overfit_run.csv
 ```
 
-Compare several runs:
+Compare multiple runs:
 
 ```bash
 python -m ml_debug_agent.cli compare data/healthy_run.csv data/overfit_run.csv data/unstable_run.csv
@@ -71,26 +77,46 @@ Launch the dashboard:
 streamlit run ml_debug_agent/dashboard.py
 ```
 
-Run tests:
+Then open:
 
-```bash
-pytest -q
+```text
+http://localhost:8501
 ```
 
-## Expected log format
+## Expected Log Format
 
-The analyzer expects a CSV file with these columns:
+TrainSentry expects a CSV file with these required columns:
 
 ```text
 epoch,train_loss,val_loss,train_accuracy,val_accuracy
 ```
 
+Example:
+
+```csv
+epoch,train_loss,val_loss,train_accuracy,val_accuracy
+1,0.910,0.920,0.570,0.550
+2,0.760,0.780,0.660,0.640
+3,0.620,0.650,0.750,0.710
+```
+
 Optional columns are allowed and preserved by the parser.
 
-## Resume-ready description
+## Example Findings
 
-Built an AI-assisted ML debugging tool that parses training logs, detects
-overfitting, loss spikes, metric drift, validation stagnation, and suspicious
-accuracy patterns, then generates experiment reports and dashboard
-visualizations with pytest coverage and GitHub Actions CI.
+TrainSentry can identify issues such as:
 
+- **Possible overfitting:** training loss improves while validation loss worsens
+- **Validation loss spike:** validation loss increases sharply around specific epochs
+- **Validation stagnation:** validation loss stops improving across recent epochs
+- **Metric drift:** train-validation accuracy gap grows during training
+- **Suspicious validation accuracy:** unusually high validation accuracy may indicate leakage
+
+## Tech Stack
+
+- Python
+- Pandas
+- Streamlit
+- Plotly
+- Pytest
+- GitHub Actions
