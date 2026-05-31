@@ -16,7 +16,7 @@
 [![License](https://img.shields.io/badge/License-MIT-a78bfa?style=for-the-badge)](LICENSE)
 
 > **TrainSentry automates the first debugging pass of ML training runs.**
-> It parses PyTorch-style CSV logs, detects training anomalies with a rules engine,
+> It parses training log CSVs, detects anomalies with a rules engine, 
 > and optionally generates rich debugging narratives powered by Gemini.
 
 </div>
