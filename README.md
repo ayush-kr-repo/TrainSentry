@@ -3,21 +3,21 @@
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f0c29,50:302b63,100:24243e&height=200&section=header&text=🛡️%20TrainSentry&fontSize=60&fontColor=ffffff&fontAlignY=38&desc=AI-Assisted%20ML%20Training%20Log%20Analyzer&descAlignY=58&descSize=20&descColor=a78bfa&animation=fadeIn" />
 
 <a href="https://git.io/typing-svg">
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=20&pause=1000&color=A78BFA&center=true&vCenter=true&width=650&lines=Detect+Overfitting+%7C+Spikes+%7C+Stagnation;Claude-Powered+Debugging+Narratives;Rules+Engine+%2B+LLM+Report+Generation;CLI+%7C+Streamlit+Dashboard+%7C+CI+Tested" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=20&pause=1000&color=A78BFA&center=true&vCenter=true&width=650&lines=Detect+Overfitting+%7C+Spikes+%7C+Stagnation;Gemini-Powered+Debugging+Narratives;Rules+Engine+%2B+LLM+Report+Generation;CLI+%7C+Streamlit+Dashboard+%7C+CI+Tested" alt="Typing SVG" />
 </a>
 
 <br/>
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
-[![Claude](https://img.shields.io/badge/Claude-AI%20Reports-7c3aed?style=for-the-badge&logoColor=white)](https://anthropic.com)
+[![Gemini](https://img.shields.io/badge/Gemini-AI%20Reports-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://aistudio.google.com)
 [![Pytest](https://img.shields.io/badge/Pytest-Tested-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://pytest.org)
 [![CI](https://img.shields.io/badge/GitHub_Actions-CI-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)](/.github/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-MIT-a78bfa?style=for-the-badge)](LICENSE)
 
 > **TrainSentry automates the first debugging pass of ML training runs.**
 > It parses PyTorch-style CSV logs, detects training anomalies with a rules engine,
-> and optionally generates rich debugging narratives powered by Claude.
+> and optionally generates rich debugging narratives powered by Gemini.
 
 </div>
 
@@ -37,7 +37,7 @@ TrainSentry automates that pass:
 
 **Without AI report:** fast, offline, deterministic — a structured Markdown report with severity labels, evidence, and suggested next actions.
 
-**With AI report (`--ai-report`):** Claude reads the structured findings and writes a rich debugging narrative — root cause analysis, concrete next steps, a prioritised action plan, and false-positive flags.
+**With AI report:** Gemini reads the structured findings and writes a rich debugging narrative — root cause analysis, concrete next steps, a prioritised action plan, and false-positive flags.
 
 ---
 
@@ -50,7 +50,7 @@ TrainSentry automates that pass:
 | 📈 Training Curves | Side-by-side loss + accuracy curves with train/val gap bar chart |
 | 🔍 Findings Panel | Severity-sorted issues with evidence, epoch ranges, suggested actions |
 | 📄 Rules Report | Offline Markdown report — no API key needed |
-| 🤖 AI Report | Claude-generated narrative — root cause analysis + prioritised action plan |
+| 🤖 AI Report | Gemini-generated narrative — root cause analysis + prioritised action plan |
 
 ---
 
@@ -63,6 +63,7 @@ pip install -r requirements.txt
 
 ### Run tests
 ```bash
+# From project root
 pytest -q
 ```
 
@@ -73,7 +74,7 @@ python -m ml_debug_agent.cli analyze data/overfit_run.csv
 
 ### Analyze with AI-assisted report
 ```bash
-export ANTHROPIC_API_KEY=your_key_here
+export GEMINI_API_KEY=your_key_here   # Windows: $env:GEMINI_API_KEY="your_key_here"
 python -m ml_debug_agent.cli analyze data/overfit_run.csv --ai-report
 ```
 
@@ -117,18 +118,18 @@ Optional columns are allowed and preserved by the parser.
 
 ## 🤖 AI Report — How It Works
 
-The `--ai-report` flag sends structured findings to Claude and returns an engineer-readable debugging report.
+The `--ai-report` flag (CLI) or **AI Report toggle** (dashboard) sends structured findings to Gemini and returns an engineer-readable debugging report.
 
 ```
 Detected Findings (rules engine)
             │
             ▼
-    Structured JSON payload
+    Structured payload
     {issue_type, severity, epoch_range,
      evidence, suggested_action}
             │
             ▼
-    Claude (claude-sonnet-4)
+    Gemini (gemini-1.5-flash)
             │
             ▼
     AI Debugging Report
@@ -140,6 +141,8 @@ Detected Findings (rules engine)
 ```
 
 **No API key?** TrainSentry falls back to the rules-based report automatically — no crash, no silent failure, just a clear warning message.
+
+**Get a free Gemini API key** at [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey).
 
 ### Example AI report output
 
@@ -171,7 +174,7 @@ updates are driven almost entirely by training-set noise...
 | Pandas | Log parsing and feature computation |
 | Streamlit | Interactive dashboard |
 | Plotly | Training curve visualizations |
-| Claude (Anthropic) | AI-assisted debugging narrative generation |
+| Gemini (Google) | AI-assisted debugging narrative generation |
 | Pytest | Unit test suite |
 | GitHub Actions | CI — runs tests on every push |
 
@@ -189,18 +192,18 @@ parser.py          ── Load, validate, and type-check the log file
 analyzer.py        ── Rules engine: overfitting, spikes,
       │                stagnation, drift, leakage detection
       ▼
-schemas.py         ── ExperimentSummary + Finding dataclasses
+schemas.py         ── TrainingRun + AnalysisResult dataclasses
       │
       ├──── reporter.py (rules) ──► Structured Markdown report
       │
-      └──── reporter.py (AI) ────► Claude API
+      └──── reporter.py (AI) ────► Gemini API
                                         │
                                         ▼
                                    AI Debugging Narrative
                                    (root cause + action plan)
       │
-      ├──── cli.py      ──► Terminal output + --save flag
-      └──── dashboard.py ──► Streamlit UI (4 tabs)
+      ├──── cli.py       ──► Terminal output + --save flag
+      └──── dashboard.py ──► Streamlit UI (4 tabs, inline controls)
 ```
 
 ---
@@ -224,10 +227,10 @@ TrainSentry/
 ├── ml_debug_agent/
 │   ├── analyzer.py      # Training anomaly detection — rules engine
 │   ├── cli.py           # CLI: analyze + compare subcommands + --ai-report flag
-│   ├── dashboard.py     # Streamlit dashboard — 4 tabs including AI report
+│   ├── dashboard.py     # Streamlit dashboard — 4 tabs, inline upload + AI controls
 │   ├── parser.py        # CSV loading, validation, type checking
-│   ├── reporter.py      # Rules report + Claude AI report with graceful fallback
-│   └── schemas.py       # ExperimentSummary + Finding dataclasses
+│   ├── reporter.py      # Rules report + Gemini AI report with graceful fallback
+│   └── schemas.py       # TrainingRun + AnalysisResult dataclasses
 ├── data/
 │   ├── healthy_run.csv
 │   ├── overfit_run.csv
@@ -236,6 +239,7 @@ TrainSentry/
 │   ├── test_analyzer.py
 │   ├── test_parser.py
 │   └── test_reporter.py
+├── conftest.py          # pytest sys.path fix
 ├── .github/workflows/
 │   └── ci.yml           # Automated pytest on every push
 ├── requirements.txt
@@ -254,7 +258,7 @@ pytest -q
 pytest --cov=ml_debug_agent --cov-report=term-missing
 ```
 
-GitHub Actions runs the full test suite on every push to `main` and every pull request — zero-config CI.
+GitHub Actions runs the full test suite on every push to `main` and every pull request. The `conftest.py` at the project root ensures `ml_debug_agent` is always importable in CI without extra env vars.
 
 ---
 
