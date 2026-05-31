@@ -161,7 +161,7 @@ def generate_ai_report(
 
     try:
         genai.configure(api_key=resolved_key)
-        model = genai.GenerativeModel("gemini-3.5-flash")
+        model = genai.GenerativeModel("gemini-2.0-flash")
         response = model.generate_content(prompt)   
         ai_content = response.text
 
