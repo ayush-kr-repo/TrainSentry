@@ -5,22 +5,24 @@ Usage examples:
     python -m ml_debug_agent.cli analyze data/overfit_run.csv
     python -m ml_debug_agent.cli analyze data/overfit_run.csv --ai-report
     python -m ml_debug_agent.cli analyze data/overfit_run.csv --ai-report --save
-    python -m ml_debug_agent.cli compare data/healthy_run.csv data/overfit_run.csv
+    python -m ml_debug_agent.cli compare data/healthy_run.csv data/overfit_run.csv data/unstable_run.csv
 """
 
 from __future__ import annotations
+
+from dotenv import load_dotenv
+load_dotenv()
 
 import argparse
 import sys
 from pathlib import Path
 
-from ml_debug_agent.parser import load_log
-from ml_debug_agent.analyzer import analyze
-from ml_debug_agent.reporter import generate_report, generate_ai_report, generate_comparison_report
+from ml_debug_agent.parser import load_training_log
+from ml_debug_agent.analyzer import analyze_run
+from ml_debug_agent.reporter import build_markdown_report, generate_ai_report, build_comparison_report
 
 
 def cmd_analyze(args: argparse.Namespace) -> None:
-    """Analyze a single training log file."""
     log_path = Path(args.file)
 
     if not log_path.exists():
@@ -28,42 +30,39 @@ def cmd_analyze(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     print(f"📂 Loading: {log_path.name}")
-    df = load_log(log_path)
+    run = load_training_log(log_path)
 
-    print(f"🔍 Analyzing {len(df)} epochs...")
-    summary = analyze(df, experiment_name=log_path.stem)
+    print(f"🔍 Analyzing {len(run.frame)} epochs...")
+    analysis = analyze_run(run)
 
-    # Choose report mode
     if args.ai_report:
         print("🤖 Generating AI-assisted report via Claude...\n")
-        report = generate_ai_report(summary, api_key=args.api_key)
+        report = generate_ai_report(analysis, api_key=args.api_key)
     else:
-        report = generate_report(summary)
+        report = build_markdown_report(analysis)
 
     print(report)
 
-    # Optionally save to file
     if args.save:
         suffix = "_ai_report.md" if args.ai_report else "_report.md"
-        out_path = log_path.with_suffix("").parent / (log_path.stem + suffix)
+        out_path = log_path.parent / (log_path.stem + suffix)
         out_path.write_text(report, encoding="utf-8")
         print(f"\n💾 Report saved to: {out_path}")
 
 
 def cmd_compare(args: argparse.Namespace) -> None:
-    """Compare multiple training log files side by side."""
-    summaries = []
+    analyses = []
 
     for file_str in args.files:
         path = Path(file_str)
         if not path.exists():
             print(f"❌ File not found: {path}")
             sys.exit(1)
-        df = load_log(path)
-        summary = analyze(df, experiment_name=path.stem)
-        summaries.append(summary)
+        run = load_training_log(path)
+        analysis = analyze_run(run)
+        analyses.append(analysis)
 
-    report = generate_comparison_report(summaries)
+    report = build_comparison_report(analyses)
     print(report)
 
     if args.save:
@@ -79,42 +78,26 @@ def build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    # ── analyze subcommand ────────────────────────────────────────────────────
-    analyze_parser = subparsers.add_parser(
-        "analyze",
-        help="Analyze a single training log CSV",
-    )
+    analyze_parser = subparsers.add_parser("analyze", help="Analyze a single training log CSV")
     analyze_parser.add_argument("file", help="Path to training log CSV")
     analyze_parser.add_argument(
-        "--ai-report",
-        action="store_true",
-        help="Generate AI-assisted narrative report via Claude (requires ANTHROPIC_API_KEY)",
+        "--ai-report", action="store_true",
+        help="Generate AI-assisted report via Claude (requires ANTHROPIC_API_KEY)",
     )
     analyze_parser.add_argument(
-        "--api-key",
-        default=None,
+        "--api-key", default=None,
         help="Anthropic API key (overrides ANTHROPIC_API_KEY env var)",
     )
     analyze_parser.add_argument(
-        "--save",
-        action="store_true",
+        "--save", action="store_true",
         help="Save report to a Markdown file alongside the input CSV",
     )
     analyze_parser.set_defaults(func=cmd_analyze)
 
-    # ── compare subcommand ────────────────────────────────────────────────────
-    compare_parser = subparsers.add_parser(
-        "compare",
-        help="Compare multiple training log CSVs side by side",
-    )
+    compare_parser = subparsers.add_parser("compare", help="Compare multiple training log CSVs")
+    compare_parser.add_argument("files", nargs="+", help="Paths to two or more CSVs")
     compare_parser.add_argument(
-        "files",
-        nargs="+",
-        help="Paths to two or more training log CSVs",
-    )
-    compare_parser.add_argument(
-        "--save",
-        action="store_true",
+        "--save", action="store_true",
         help="Save comparison report to comparison_report.md",
     )
     compare_parser.set_defaults(func=cmd_compare)
